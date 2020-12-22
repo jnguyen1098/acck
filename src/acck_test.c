@@ -32,6 +32,8 @@ void token_test(const char *stream, char *expected_token, enum token expected_ty
 
     printf("    Asserting type as %s\n", token_names[expected_type]);
     assert(identify_token(token) == expected_type);
+
+    free(token);
 }
 
 void extract_test(const char **streams, char *expected_token, enum token expected_type)
@@ -128,10 +130,55 @@ void run_startup_tests(void)
 
     // Test extract floatdcl
     extract_test(
-        (const char *[]) {"f a", "f 1", "f     a", "f   df sdf ", NULL},
+        (const char *[]) { "f", "f a", "f 1", "f     a", "f   df sdf ", NULL },
         "f",
         FLOATDCL
     );
+
+    // Test extract intdcl
+    extract_test(
+        (const char *[]) { "i", "i p", "i 2342fwwf", "i      3", NULL },
+        "i",
+        INTDCL
+    );
+
+    // Test extract print
+    extract_test(
+        (const char *[]) { "p", "p i", "p     3", NULL },
+        "p",
+        PRINT
+    );
+
+    // Test extract ID
+    {
+        const char *ids[] = {
+            "a", "b", "c", "d", "e", "g", "h", "j", "k", "l", "m", "n",
+            "o", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", NULL
+        };
+
+        const char *ends[] = {
+            " a", " b", " c", " d", " e", " f", " g", " h", " i", " j",
+            " k", " l", " m", " n", " o", " p", " q", " r", " s", " t",
+            " u", " v", " w", " x", " y" , " z",
+            "     1", " 1", " a", " b", "       2", NULL
+        };
+
+        for (int i = 0; ids[i]; i++) {
+            for (int j = 0; ends[j]; j++) {
+                char stream[16] = "";
+                strcat(stream, ids[i]);
+                strcat(stream, ends[j]);
+
+                char *stream_ptr = stream;
+
+                const char *streams[2];
+                streams[0] = stream_ptr;
+                streams[1] = NULL;
+
+                extract_test(streams, (char *)ids[i], ID);
+            }
+        }
+    }
 
     puts("\nTests complete");
 }

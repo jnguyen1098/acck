@@ -28,6 +28,11 @@ char *get_token(const char **stream)
     if (c == '-')
         return strcpy(malloc(2), "-");
 
+    char tmp_tok[2];
+    tmp_tok[0] = c;
+    tmp_tok[1] = '\0';
+    return strcpy(malloc(2), tmp_tok);
+
     fprintf(stderr, "Could not derive token...\n");
     fprintf(stderr, "Stream: \"%s\"\n", *stream);
 
@@ -128,22 +133,3 @@ enum token identify_token(const char *string)
 
     return BLANK;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
