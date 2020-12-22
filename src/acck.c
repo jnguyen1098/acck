@@ -26,11 +26,17 @@ int main(int argc, char *argv[])
     for (int i = optind; i < argc; i++) {
         if (!found_file) {
             strcpy(file, argv[i]);
-            drintf("Detected file '%s'\n", argv[i]);
+            drintf("Will attempt to compile '%s'\n", argv[i]);
             found_file = 1;
         } else {
-            drintf("Ignoring argument '%s'\n", argv[i]);
+            drintf("Ignoring additional argument '%s'\n", argv[i]);
         }
+    }
+
+    FILE *fp;
+    if (!(fp = fopen(file, "r"))) {
+        printf("acck: error: %s: could not open file\n", file);
+        exit(1);
     }
 
     return 0;
