@@ -1,5 +1,62 @@
 #include "acck.h"
 
+char *get_token(const char **stream)
+{
+    while (**stream == ' ') (*stream)++;
+
+    if (!**stream) return NULL;
+
+    if (isdigit(**stream)) return get_digit_token(stream);
+
+    char c = *(*stream)++;
+
+    if (c == 'f')
+        return strcpy(malloc(2), "f");
+
+    if (c == 'i')
+        return strcpy(malloc(2), "i");
+
+    if (c == 'p')
+        return strcpy(malloc(2), "p");
+
+    if (c == '=')
+        return strcpy(malloc(2), "=");
+
+    if (c == '+')
+        return strcpy(malloc(2), "+");
+
+    if (c == '-')
+        return strcpy(malloc(2), "-");
+
+    fprintf(stderr, "Could not derive token...\n");
+    fprintf(stderr, "Stream: \"%s\"\n", *stream);
+
+    exit(1);
+}
+
+char *get_digit_token(const char **stream)
+{
+    char *token = calloc(MAX_TOK, sizeof(char));
+    int n = 0;
+
+    while (isdigit(**stream)) {
+        token[n++] = **stream;
+        (*stream)++;
+    }
+
+    if (**stream == '.') {
+        token[n++] = **stream;
+        (*stream)++;
+
+        while (isdigit(**stream)) {
+            token[n++] = **stream;
+            (*stream)++;
+        }
+    }
+
+    return token;
+}
+
 enum token identify_token(const char *string)
 {
     if (!string) {

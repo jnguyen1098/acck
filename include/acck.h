@@ -1,14 +1,15 @@
 #ifndef ACCK_H
 #define ACCK_H
 
-#define DEBUG
-
 #include <assert.h>
 #include <ctype.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define DEBUG
+#define MAX_TOK BUFSIZ
 
 #ifdef DEBUG
 #   define drintf printf
@@ -29,5 +30,11 @@ void run_startup_tests(void);
 
 // Derive token
 enum token identify_token(const char *string);
+
+// Get token
+char *get_token(const char **stream);
+
+// Get digit token
+char *get_digit_token(const char **stream);
 
 #endif

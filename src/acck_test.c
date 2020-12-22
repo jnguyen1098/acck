@@ -5,7 +5,7 @@ const char *token_names[] = {
     "INUM", "FNUM", "BLANK", "INVALID"
 };
 
-void batch_test(enum token expected, const char **passes, const char **fails)
+void identifier_test(enum token expected, const char **passes, const char **fails)
 {
     printf("\nTesting %s detection passes\n", token_names[expected]);
     for (int i = 0; passes[i]; i++) {
@@ -20,12 +20,32 @@ void batch_test(enum token expected, const char **passes, const char **fails)
     }
 }
 
+void token_test(const char *stream, char *expected_token, enum token expected_type)
+{
+    printf("\nTesting token(\"%s\") -> \"%s\" (%s)\n",
+            stream, expected_token, token_names[expected_type]);
+    char *token = get_token(&stream);
+
+    printf("    Asserting result (\"%s\" | \"%s\") as \"%s\"\n",
+        token, stream, expected_token);
+    assert(!strcmp(expected_token, token));
+
+    printf("    Asserting type as %s\n", token_names[expected_type]);
+    assert(identify_token(token) == expected_type);
+}
+
+void extract_test(const char **streams, char *expected_token, enum token expected_type)
+{
+    for (int i = 0; streams[i]; i++)
+        token_test(streams[i], expected_token, expected_type);
+}
+
 void run_startup_tests(void)
 {
     puts("Starting tests");
 
     // Test float declaration
-    batch_test(FLOATDCL,
+    identifier_test(FLOATDCL,
         (const char *[]) { "f", NULL },
         (const char *[]) {
             "F", "i", "p", "as", "=", "+", "-", "14", "33.3", " ", NULL
@@ -33,7 +53,7 @@ void run_startup_tests(void)
     );
 
     // Test int declaration
-    batch_test(INTDCL,
+    identifier_test(INTDCL,
         (const char *[]) { "i", NULL },
         (const char *[]) {
             "I", "f", "p", " ", "324", "325423.245", "+", "=", NULL
@@ -41,7 +61,7 @@ void run_startup_tests(void)
     );
 
     // Test print
-    batch_test(PRINT,
+    identifier_test(PRINT,
         (const char *[]) { "p", NULL },
         (const char *[]) {
             "I", "i", "P", "f", " ", "324", "32423.245", "+", "=", NULL
@@ -49,7 +69,7 @@ void run_startup_tests(void)
     );
 
     // Test id
-    batch_test(ID,
+    identifier_test(ID,
         (const char *[]) {
             "a", "b", "c", "d", "e",
             "g", "h",
@@ -66,25 +86,25 @@ void run_startup_tests(void)
     );
 
     // Test assign
-    batch_test(ASSIGN,
+    identifier_test(ASSIGN,
         (const char *[]) { "=", NULL },
         (const char *[]) { "f", "i", "p", "+", "-", "0", "0.0", " ", 0}
     );
 
     // Test plus
-    batch_test(PLUS,
+    identifier_test(PLUS,
         (const char *[]) { "+", NULL },
         (const char *[]) { "f", "i", "p", "=", "-", "0", "0.0", " ", 0}
     );
 
     // Test minus
-    batch_test(MINUS,
+    identifier_test(MINUS,
         (const char *[]) { "-", NULL },
         (const char *[]) { "f", "i", "p", "+", "=", "0", "0.0", " ", 0}
     );
 
     // Test integer
-    batch_test(INUM,
+    identifier_test(INUM,
         (const char *[]) {
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
             "113141", "23456", "4593465", "929532523535", NULL
@@ -95,15 +115,22 @@ void run_startup_tests(void)
     );
 
     // Test float
-    batch_test(FNUM,
+    identifier_test(FNUM,
         (const char *[]) { "0.0", "1.1", "2.2", "235.23", "9.3", NULL },
         (const char *[]) { "3243", ".3243", "234234.", "....", NULL }
     );
 
     // Test blank
-    batch_test(BLANK,
+    identifier_test(BLANK,
         (const char *[]) { " ", "  ", "   ", "    ", "     ", NULL },
         (const char *[]) { "f", "i", "p", "a", "=", "+", "-", NULL }
+    );
+
+    // Test extract floatdcl
+    extract_test(
+        (const char *[]) {"f a", "f 1", "f     a", "f   df sdf ", NULL},
+        "f",
+        FLOATDCL
     );
 
     puts("\nTests complete");
