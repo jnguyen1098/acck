@@ -9,7 +9,8 @@
 #include <string.h>
 
 #define DEBUG
-#define MAX_TOK BUFSIZ
+#define PREWHITE
+#define MAX_DIGIT_TOK 32
 
 #ifdef DEBUG
 #   define drintf printf

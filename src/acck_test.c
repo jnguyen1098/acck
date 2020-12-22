@@ -28,7 +28,11 @@ void token_test(const char *stream, char *expected_token, enum token expected_ty
 
     printf("    Asserting result (\"%s\" | \"%s\") as \"%s\"\n",
         token, stream, expected_token);
-    assert(!strcmp(expected_token, token));
+    if (expected_token) {
+        assert(!strcmp(expected_token, token));
+    } else {
+        assert(token == expected_token);
+    }
 
     printf("    Asserting type as %s\n", token_names[expected_type]);
     assert(identify_token(token) == expected_type);
@@ -40,6 +44,23 @@ void extract_test(const char **streams, char *expected_token, enum token expecte
 {
     for (int i = 0; streams[i]; i++)
         token_test(streams[i], expected_token, expected_type);
+}
+
+int isvalid(char c)
+{
+    if (c >= 'a' && c <= 'z')
+        return 1;
+
+    if (c == '=' || c == '+' || c == '-')
+        return 1;
+
+    if (c >= '0' && c <= '9')
+        return 1;
+
+    if (c == ' ' || c == '.')
+        return 1;
+
+    return 0;
 }
 
 void run_startup_tests(void)
@@ -149,6 +170,27 @@ void run_startup_tests(void)
         PRINT
     );
 
+    // Test extract assign
+    extract_test(
+        (const char *[]) { "=", "= i", "=     3", NULL },
+        "=",
+        ASSIGN
+    );
+
+    // Test extract plus
+    extract_test(
+        (const char *[]) { "+", "+ i", "+     3", NULL },
+        "+",
+        PLUS
+    );
+
+    // Test extract minus
+    extract_test(
+        (const char *[]) { "-", "- i", "-     3", NULL },
+        "-",
+        MINUS
+    );
+
     // Test extract ID
     {
         const char *ids[] = {
@@ -165,7 +207,10 @@ void run_startup_tests(void)
 
         for (int i = 0; ids[i]; i++) {
             for (int j = 0; ends[j]; j++) {
-                char stream[16] = "";
+                char stream[19] = "";
+#ifdef PREWHITE
+                strcat(stream, "   ");
+#endif
                 strcat(stream, ids[i]);
                 strcat(stream, ends[j]);
 
@@ -177,6 +222,116 @@ void run_startup_tests(void)
 
                 extract_test(streams, (char *)ids[i], ID);
             }
+        }
+    }
+
+    // Test extract inum
+    {
+        const char *ints[] = {
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "02346346", "13455345", "23254534", "3235334345",
+            "42352356", "53233432", "62435232", "7235849723",
+            "82384333", "92385723", NULL
+        };
+
+        const char *ends[] = {
+            " a", " b", " c", " d", " e", " f", " g", " h", " i", " j",
+            " k", " l", " m", " n", " o", " p", " q", " r", " s", " t",
+            " u", " v", " w", " x", " y" , " z",
+            
+            " 0", " 1", " 2", " 3", " 4", " 5", " 6", " 7", " 8", " 9",
+
+            "     1", " 1", " a", " b", "       2", NULL
+        };
+
+        for (int i = 0; ints[i]; i++) {
+            for (int j = 0; ends[j]; j++) {
+                char stream[35] = "";
+#ifdef PREWHITE
+                strcat(stream, "   ");
+#endif
+                strcat(stream, ints[i]);
+                strcat(stream, ends[j]);
+
+                char *stream_ptr = stream;
+
+                const char *streams[2];
+                streams[0] = stream_ptr;
+                streams[1] = NULL;
+
+                extract_test(streams, (char *)ints[i], INUM);
+            }
+        }
+    }
+
+    // Test extract fnum
+    {
+        const char *ints[] = {
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "02346346", "13455345", "23254534", "3235334345",
+            "42352356", "53233432", "62435232", "7235849723",
+            "82384333", "92385723", NULL
+        };
+
+        const char *ends[] = {
+            " a", " b", " c", " d", " e", " f", " g", " h", " i", " j",
+            " k", " l", " m", " n", " o", " p", " q", " r", " s", " t",
+            " u", " v", " w", " x", " y" , " z",
+            
+            " 0", " 1", " 2", " 3", " 4", " 5", " 6", " 7", " 8", " 9",
+
+            "     1", " 1", " a", " b", "       2", NULL
+        };
+
+        for (int i = 0; ints[i]; i++) {
+            for (int k = 0; ints[k]; k++) {
+                for (int j = 0; ends[j]; j++) {
+                    char expected[32] = "";
+                    strcat(expected, ints[i]);
+                    strcat(expected, ".");
+                    strcat(expected, ints[k]);
+
+                    char stream[35] = "";
+#ifdef PREWHITE
+                    strcat(stream, "   ");
+#endif
+                    strcat(stream, ints[i]);
+                    strcat(stream, ".");
+                    strcat(stream, ints[k]);
+                    strcat(stream, ends[j]);
+
+                    char *stream_ptr = stream;
+
+                    const char *streams[2];
+                    streams[0] = stream_ptr;
+                    streams[1] = NULL;
+
+                    extract_test(streams, expected, FNUM);
+                }
+            }
+        }
+    }
+
+    // Test for invalid
+    {
+        const char *streams[3];
+        for (unsigned char c = 0; c < 128; c++) {
+            if (isvalid(c)) continue;
+
+            char nowhite[16] = "";
+            nowhite[0] = c;
+            char white[16] = "   ";
+            white[3] = c;
+            white[4] = '\0';
+
+            char *nowhite_ptr = nowhite;
+            char *white_ptr = white;
+
+            streams[0] = nowhite_ptr;
+            streams[1] = white_ptr;
+            streams[2] = NULL;
+
+            extract_test(streams, NULL, INVALID);
         }
     }
 

@@ -28,20 +28,18 @@ char *get_token(const char **stream)
     if (c == '-')
         return strcpy(malloc(2), "-");
 
+    if (!c || !isalpha(c) || isupper(c))
+        return NULL;
+
     char tmp_tok[2];
     tmp_tok[0] = c;
     tmp_tok[1] = '\0';
     return strcpy(malloc(2), tmp_tok);
-
-    fprintf(stderr, "Could not derive token...\n");
-    fprintf(stderr, "Stream: \"%s\"\n", *stream);
-
-    exit(1);
 }
 
 char *get_digit_token(const char **stream)
 {
-    char *token = calloc(MAX_TOK, sizeof(char));
+    char *token = calloc(MAX_DIGIT_TOK, sizeof(char));
     int n = 0;
 
     while (isdigit(**stream)) {
@@ -64,10 +62,8 @@ char *get_digit_token(const char **stream)
 
 enum token identify_token(const char *string)
 {
-    if (!string) {
-        fprintf(stderr, "Received NULL in identify_token(). Aborting\n");
-        abort();
-    }
+    if (!string)
+        return INVALID;
 
     if (strlen(string) == 1) {
         switch (*string) {
