@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Wall -Wpedantic -Wextra -ggdb3 -Iinclude
 VFLAGS = --show-leak-kinds=all --track-origins=yes --leak-check=full
 
 TARGET = acck
-OBJS = bin/acck.o
+OBJS = bin/acck.o bin/acck_test.o
 
 .PHONY: all run clean
 
