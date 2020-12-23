@@ -1,5 +1,25 @@
 #include "acck.h"
 
+token_t *pack_token(char *token_text)
+{
+    if (!token_text || identify_token(token_text) == INVALID)
+        return NULL;
+
+    token_t *token = malloc(sizeof(token_t));
+    memset(token, 0, sizeof(token_t));
+
+    if (strlen(token_text) >= MAX_TOK) {
+        fprintf(stderr, "Token \"%s\" (%zu) is too big. Exiting.\n",
+            token_text, strlen(token_text));
+        exit(1);
+    }
+
+    strcpy(token->data, token_text);
+    token->type = identify_token(token_text);
+
+    return token;
+}
+
 char *get_token(const char **stream)
 {
     while (**stream == ' ') (*stream)++;
@@ -39,7 +59,7 @@ char *get_token(const char **stream)
 
 char *get_digit_token(const char **stream)
 {
-    char *token = calloc(MAX_DIGIT_TOK, sizeof(char));
+    char *token = calloc(MAX_TOK, sizeof(char));
     int n = 0;
 
     while (isdigit(**stream)) {
