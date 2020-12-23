@@ -37,6 +37,24 @@ void token_test(const char *stream, char *expected_token, enum token expected_ty
     printf("    Asserting type as %s\n", token_names[expected_type]);
     assert(identify_token(token) == expected_type);
 
+    puts("    Packing token");
+    token_t *packed = pack_token(token);
+
+    printf("        Testing packed value (expecting \"%s\")\n", token);
+    if (token) {
+        assert(!strcmp(packed->data, token));
+    } else {
+        assert(!packed);
+    }
+
+    printf("        Texting packed type as %s\n", token_names[expected_type]);
+    if (expected_type != INVALID) {
+        assert(packed->type == expected_type);
+    } else {
+        assert(!packed);
+    }
+
+    free(packed);
     free(token);
 }
 
