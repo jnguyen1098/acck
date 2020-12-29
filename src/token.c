@@ -22,7 +22,9 @@ token_t *pack_token(char *token_text)
 
 char *get_token(const char **stream)
 {
-    while (**stream == ' ') (*stream)++;
+    while (
+        **stream == ' ' || **stream == '\n' || **stream == '\r'
+    ) (*stream)++;
 
     if (!**stream) return NULL;
 
